@@ -18,7 +18,7 @@ logging.basicConfig(
 # Ключевые слова
 keywords = ["жан", "лошадь", "эрен"]
 pik_keywords = ["пик", "пик фингер"]
-vikky_user = "bn_vikky"
+
 
 # OpenAI ответ
 async def ask_openai(prompt: str) -> str:
@@ -52,9 +52,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if any(word in text for word in pik_keywords):
         await message.reply_text("Пик... Она — воплощение грации и ума. Кто сможет устоять?")
         return
-
-    if sender_username == vikky_user:
-        text = f"Сообщение от bn_vikky: {text}"
 
     response = await ask_openai(text)
     await message.reply_text(response)
