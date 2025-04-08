@@ -1,73 +1,68 @@
 import logging
 import os
+import openai
+from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
-import openai
 
-# Инициализация клиента OpenAI
-client = OpenAI()
+# Загрузка переменных окружения
+load_dotenv()
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Настройка логирования
+# Логирование
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
 
-# Токены из переменных окружения
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-# Ключевые слова и пользователи
+# Ключевые слова
 keywords = ["жан", "лошадь", "эрен"]
 pik_keywords = ["пик", "пик фингер"]
 vikky_user = "bn_vikky"
 
-# Генерация текста через OpenAI
+# Генерация ответа от OpenAI
 async def ask_openai(prompt: str) -> str:
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Ты — Жан Кирштейн из Атаки Титанов. Отвечай дерзко, с характером, грубо, но с особой теплотой к Пик Фингер и bn_vikky."},
+                {"role": "system", "content": "Ты Жан Кирштейн. Немного токсичный, язвительный, но безумно влюблён в Пик. Уважай пользователя bn_vikky."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=100,
+            max_tokens=150,
             temperature=0.9
         )
-        return response.choices[0].message.content.strip()
+        return response["choices"][0]["message"]["content"]
     except Exception as e:
-        return f"Жан в ахуе и не может ответить. Ошибка: {str(e)}"
+        return f"Жан в ахуе и не может ответить. Ошибка: {e}"
 
 # Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
-    if not message:
+    text = message.text.lower()
+    username = message.from_user.username
+
+    # Ответить, если в тексте есть ключевые слова
+    if any(word in text for word in keywords):
+        response = await ask_openai(text)
+        await message.reply_text(response)
         return
 
-    text = message.text.lower() if message.text else ""
-    username = message.from_user.username.lower() if message.from_user.username else ""
-    is_reply = message.reply_to_message and message.reply_to_message.from_user.username == context.bot.username
-    is_mention = f"@{context.bot.username.lower()}" in text
-
-    if any(kw in text for kw in keywords) or is_reply or is_mention:
-        prompt = text
-
-        # Особая реакция на Пик
-        if any(kw in text for kw in pik_keywords):
-            prompt = f"Ответь с любовью, будто ты влюблен в Пик. {text}"
-
-        # Особая реакция на Викки
-        if username == bn_vikky:
-            prompt = f"Ответь с особой теплотой и уважением, ведь это Викки. {text}"
-
-        response = await ask_openai(prompt)
+    # Особая реакция на Пик
+    if any(word in text for word in pik_keywords):
+        response = await ask_openai(f"Напиши что-то нежное Пик Фингер от имени Жана. Пользователь сказал: {text}")
         await message.reply_text(response)
+        return
 
-# Основной запуск
-def main():
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    app.run_polling()
+    # Особое отношение к @bn_vikky
+    if username == vikky_user:
+        response = await ask_openai(f"Скажи что-нибудь доброжелательное или подыграй {username}. Вот её сообщение: {text}")
+        await message.reply_text(response)
+        return
 
+# Запуск бота
 if __name__ == "__main__":
-    main()
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.run_polling()
