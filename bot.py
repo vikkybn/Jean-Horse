@@ -57,7 +57,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             prompt = f"Ответь с любовью, будто ты влюблен в Пик. {text}"
 
         # Особая реакция на Викки
-        if username == vikky_user:
+        if username == bn_vikky:
             prompt = f"Ответь с особой теплотой и уважением, ведь это Викки. {text}"
 
         response = await ask_openai(prompt)
