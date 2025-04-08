@@ -74,7 +74,7 @@ phrases = [
     "Я не грубый, я честный. А ты просто тупой.",
     "Ты выглядишь так, будто тебя пнул титановый каблук.",
 ]
-
+keywords = ["титан", "разведка", "Эрен", "Райнер", "атака", "корпус", "жрать", "Колт", "Кольт", "@AlcoColt_bot"]
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Жан Кирштейн. Лучше бы ты не писал, но раз уж начал...")
 
