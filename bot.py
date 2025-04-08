@@ -1,8 +1,13 @@
 import logging
 import random
-import asyncio
+import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
+from telegram.ext import (
+    ApplicationBuilder, ContextTypes,
+    CommandHandler, MessageHandler, filters,
+    CallbackContext
+)
+
 
 TOKEN = "8049315123:AAEPZteF97DH2IMmdGId7o0RslLxXJnbMJ0"
 
@@ -85,10 +90,16 @@ async def respond(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_reply or mentioned or matched_keyword or is_vikky:
         await update.message.reply_text(random.choice(phrases))
 
+async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
+    logging.error(f"Произошла ошибка: {context.error}")
+    if isinstance(update, Update) and update.message:
+        await update.message.reply_text("Что-то пошло по ж*пе, но я держусь. — Жан")
+
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, respond))
+    app.add_error_handler(handle_error)
     app.run_polling()
 
 if __name__ == "__main__":
