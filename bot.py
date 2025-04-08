@@ -75,11 +75,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def respond(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
+    username = update.message.from_user.username.lower() if update.message.from_user.username else ""
+
     is_reply = update.message.reply_to_message and update.message.reply_to_message.from_user.username == context.bot.username
     mentioned = context.bot.username.lower() in text
     matched_keyword = any(word in text for word in keywords)
+    is_vikky = username == "bn_vikky"
 
-    if is_reply or mentioned or matched_keyword:
+    if is_reply or mentioned or matched_keyword or is_vikky:
         await update.message.reply_text(random.choice(phrases))
 
 def main():
