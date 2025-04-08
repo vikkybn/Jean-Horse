@@ -2,7 +2,7 @@ import logging
 import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
-from openai import OpenAI
+import openai
 
 # Инициализация клиента OpenAI
 client = OpenAI()
