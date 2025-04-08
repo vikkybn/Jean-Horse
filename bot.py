@@ -74,14 +74,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Жан Кирштейн. Лучше бы ты не писал, но раз уж начал...")
 
 async def respond(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(random.choice(phrases))
+    text = update.message.text.lower()
+    is_reply = update.message.reply_to_message and update.message.reply_to_message.from_user.username == context.bot.username
+    mentioned = context.bot.username.lower() in text
+    matched_keyword = any(word in text for word in keywords)
+
+    if is_reply or mentioned or matched_keyword:
+        await update.message.reply_text(random.choice(phrases))
 
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, respond))
-    app.add_handler(MessageHandler(filters.ALL & filters.Entity("mention"), respond))
-    app.add_handler(MessageHandler(filters.StatusUpdate.ALL, respond))
     app.run_polling()
 
 if __name__ == "__main__":
